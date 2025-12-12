@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.spatial.transform import Rotation as R
+from pathlib import Path
 
 # PIPELINE (UNITY MESH → RB LOCAL → MOTIVE WORLD)
 
@@ -69,6 +70,31 @@ def kabsch_rt(A: np.ndarray, B: np.ndarray):
 # 3) KABSCH: compute mesh → RB transform 
 R_mesh_rb_tibia, T_mesh_rb_tibia = kabsch_rt(meshtibia_local, tibia_points_rb)
 R_mesh_rb_femur, T_mesh_rb_femur = kabsch_rt(meshfemur_local, femur_points_rb)
+# =========================================================
+# SAVE mesh → RB TRANSFORMS (STATIC GEOMETRY)
+# =========================================================
+
+BASE_DIR = Path(__file__).resolve().parent          # python/
+OUT_DIR = BASE_DIR.parent / "data" / "RmatrixAndT"
+
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# --- Tibia ---
+np.savez(
+    OUT_DIR / "mesh_to_rb_tibia.npz",
+    R=R_mesh_rb_tibia,
+    T=T_mesh_rb_tibia
+)
+
+# --- Femur ---
+np.savez(
+    OUT_DIR / "mesh_to_rb_femur.npz",
+    R=R_mesh_rb_femur,
+    T=T_mesh_rb_femur
+)
+
+print("Mesh→RB transforms saved in data/RmatrixAndT/")
+
 
 # 4) Load RB → WORLD transforms (Motive)
 motive_tibia = pd.read_csv("../data/csv_files/tibiaTransform.csv")
