@@ -1,8 +1,6 @@
 import pandas as pd
-# =========================
-# INPUT
-# =========================
-src = "../files/dataRigidBody.csv"
+
+src = "../data/csv_files/dataRigidBody.csv"
 
 bodies = {
     "Tibia": "tibiaTransform.csv",
@@ -11,9 +9,7 @@ bodies = {
 
 frame_col = ("Frame", "", "")
 
-# =========================
 # LETTURA CSV
-# =========================
 df = pd.read_csv(
     src,
     sep=";",
@@ -22,9 +18,7 @@ df = pd.read_csv(
     engine="python"
 )
 
-# =========================
 # NORMALIZZAZIONE HEADER
-# =========================
 def normalize_tuple(col):
     return tuple("" if x != x else str(x).strip() for x in col)
 
@@ -32,17 +26,13 @@ df.columns = pd.MultiIndex.from_tuples(
     [normalize_tuple(c) for c in df.columns]
 )
 
-# =========================
 # FLATTEN HEADER
-# =========================
 def flat_name(col):
     if col == frame_col:
         return "Frame"
     return "_".join(p for p in col if p)
 
-# =========================
 # LOOP SU TIBIA / FEMUR
-# =========================
 for body, file in bodies.items():
 
     body_cols = [
@@ -75,5 +65,5 @@ for body, file in bodies.items():
     data_table.columns = [flat_name(c) for c in data_table.columns]
 
     # Salvataggio
-    data_table.to_csv(f"../files/{file}", sep=",", decimal=".", index=False)
+    data_table.to_csv(f"../data/csv_files/{file}", sep=",", decimal=".", index=False)
     print(f"File creato: {file}")
