@@ -145,3 +145,73 @@ pd.DataFrame(mesh_world_tibia, columns=headers).to_csv("../data/csv_files/tibiaT
 pd.DataFrame(mesh_world_femur, columns=headers).to_csv("../data/csv_files/femurTransformForUnity.csv", index=False)
 
 print("CSV for Unity written.")
+
+#MARKERS FOR UNITY (ONLY POINTS PRESENT ON MESH)
+tibia_markers_unity = np.zeros((n_frames, 9))   # AMT, LT, MT → 3x3
+femur_markers_unity = np.zeros((n_frames, 9))   # AF,  LF, MF → 3x3
+
+for i in range(n_frames):
+
+    # ---------- TIBIA (AMT, LT, MT) ----------
+    qw = mesh_world_tibia[i, 4]
+    qx, qy, qz = mesh_world_tibia[i, 1], mesh_world_tibia[i, 2], mesh_world_tibia[i, 3]
+    R_world = R.from_quat([qx, qy, qz, qw]).as_matrix()
+    T_world = mesh_world_tibia[i, 5:8].reshape(3, 1)
+
+    AMT_mesh = meshtibia_local_unity[:, [0]]
+    LT_mesh  = meshtibia_local_unity[:, [1]]
+    MT_mesh  = meshtibia_local_unity[:, [2]]
+
+    P_AMT = (R_world @ AMT_mesh + T_world).ravel()
+    P_LT  = (R_world @ LT_mesh  + T_world).ravel()
+    P_MT  = (R_world @ MT_mesh  + T_world).ravel()
+
+    tibia_markers_unity[i, :] = np.concatenate([P_AMT, P_LT, P_MT])
+
+    # ---------- FEMUR (AF, LF, MF) ----------
+    qw = mesh_world_femur[i, 4]
+    qx, qy, qz = mesh_world_femur[i, 1], mesh_world_femur[i, 2], mesh_world_femur[i, 3]
+    R_world = R.from_quat([qx, qy, qz, qw]).as_matrix()
+    T_world = mesh_world_femur[i, 5:8].reshape(3, 1)
+
+    AF_mesh = meshfemur_local_unity[:, [0]]
+    LF_mesh = meshfemur_local_unity[:, [1]]
+    MF_mesh = meshfemur_local_unity[:, [2]]
+
+    P_AF = (R_world @ AF_mesh + T_world).ravel()
+    P_LF = (R_world @ LF_mesh + T_world).ravel()
+    P_MF = (R_world @ MF_mesh + T_world).ravel()
+
+    femur_markers_unity[i, :] = np.concatenate([P_AF, P_LF, P_MF])
+    
+# HEADERS + CSV WRITE
+tibia_cols = [
+    "tibiaAMT_X","tibiaAMT_Y","tibiaAMT_Z",
+    "tibiaLT_X", "tibiaLT_Y", "tibiaLT_Z",
+    "tibiaMT_X", "tibiaMT_Y", "tibiaMT_Z",
+]
+
+femur_cols = [
+    "femurAF_X","femurAF_Y","femurAF_Z",
+    "femurLF_X","femurLF_Y","femurLF_Z",
+    "femurMF_X","femurMF_Y","femurMF_Z",
+]
+
+tibia_markers_table = pd.DataFrame(tibia_markers_unity, columns=tibia_cols)
+femur_markers_table = pd.DataFrame(femur_markers_unity, columns=femur_cols)
+
+# MATLAB addvars(...,'Before',1,'Frame')
+if "Frame" in motive_tibia.columns:
+    tibia_markers_table.insert(0, "Frame", motive_tibia["Frame"].to_numpy())
+else:
+    tibia_markers_table.insert(0, "Frame", np.arange(n_frames))
+
+if "Frame" in motive_femur.columns:
+    femur_markers_table.insert(0, "Frame", motive_femur["Frame"].to_numpy())
+else:
+    femur_markers_table.insert(0, "Frame", np.arange(n_frames))
+
+tibia_markers_table.to_csv("../data/csv_files/tibiaMarkersForUnity.csv", index=False)
+femur_markers_table.to_csv("../data/csv_files/femurMarkersForUnity.csv", index=False)
+
+print("Markers for Unity written.")
