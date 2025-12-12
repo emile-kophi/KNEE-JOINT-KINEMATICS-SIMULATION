@@ -46,27 +46,6 @@ femur_points_rb = np.array([
     [femur_vp_table["femurMFlocal_X"].iloc[0], femur_vp_table["femurMFlocal_Y"].iloc[0], femur_vp_table["femurMFlocal_Z"].iloc[0]],
 ], dtype=float).T / 1000.0
 
-# KABSCH helper (A,B are 3xN)
-def kabsch_rt(A: np.ndarray, B: np.ndarray):
-    centroid_a = np.mean(A, axis=1, keepdims=True)
-    centroid_b = np.mean(B, axis=1, keepdims=True)
-
-    A0 = A - centroid_a
-    B0 = B - centroid_b
-
-    H = A0 @ B0.T
-    U, _, Vt = np.linalg.svd(H)
-
-    V = Vt.T
-    R_ab = V @ U.T
-
-    if np.linalg.det(R_ab) < 0:
-        V[:, -1] *= -1
-        R_ab = V @ U.T
-
-    T_ab = centroid_b - R_ab @ centroid_a
-    return R_ab, T_ab
-
 # 3) KABSCH: compute mesh → RB transform 
 R_mesh_rb_tibia, T_mesh_rb_tibia = kabsch_rt(meshtibia_local, tibia_points_rb)
 R_mesh_rb_femur, T_mesh_rb_femur = kabsch_rt(meshfemur_local, femur_points_rb)
