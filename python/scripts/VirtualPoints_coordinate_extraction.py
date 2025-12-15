@@ -4,8 +4,8 @@ from pathlib import Path
 
 # PATHS
 BASE_DIR = Path(__file__).resolve().parent      # virtual/python
-FILES_DIR = BASE_DIR.parent / "data/matlab"
-SAVE_DIR = BASE_DIR.parent / "data/csv_files"  # virtual/files
+FILES_DIR = BASE_DIR.parent / "../data/matlab"
+SAVE_DIR = BASE_DIR.parent / "../data/csv_files"  # virtual/files
 
 mat_file = FILES_DIR / "virtualPoint_DEMO.mat"
 

@@ -49,8 +49,8 @@ LF_local   = C @ LFlocal_Unity
 MF_local   = C @ MFlocal_Unity
 
 # LOAD RB → WORLD TRANSFORMS (Motive)
-Rb_t = pd.read_csv("../data/csv_files/tibiaTransform.csv")
-Rb_f = pd.read_csv("../data/csv_files/femurTransform.csv")
+Rb_t = pd.read_csv("../../data/csv_files/tibiaTransform.csv")
+Rb_f = pd.read_csv("../../data/csv_files/femurTransform.csv")
 
 n_frames = len(Rb_t)
 

@@ -31,8 +31,8 @@ meshtibia_local = C @ meshtibia_local_unity
 meshfemur_local = C @ meshfemur_local_unity
 
 # 2) RB-LOCAL marker positions (from Motive VP)
-tibia_vp_table = pd.read_csv("../data/csv_files/tibiaVP.csv")
-femur_vp_table = pd.read_csv("../data/csv_files/femurVP.csv")
+tibia_vp_table = pd.read_csv("../../data/csv_files/tibiaVP.csv")
+femur_vp_table = pd.read_csv("../../data/csv_files/femurVP.csv")
 
 tibia_points_rb = np.array([
     [tibia_vp_table["tibiaAMTlocal_X"].iloc[0], tibia_vp_table["tibiaAMTlocal_Y"].iloc[0], tibia_vp_table["tibiaAMTlocal_Z"].iloc[0]],
@@ -76,8 +76,8 @@ print("Mesh→RB transforms saved in data/RmatrixAndT/")
 
 
 # 4) Load RB → WORLD transforms (Motive)
-motive_tibia = pd.read_csv("../data/csv_files/tibiaTransform.csv")
-motive_femur = pd.read_csv("../data/csv_files/femurTransform.csv")
+motive_tibia = pd.read_csv("../../data/csv_files/tibiaTransform.csv")
+motive_femur = pd.read_csv("../../data/csv_files/femurTransform.csv")
 
 n_frames = len(motive_tibia)
 
@@ -146,8 +146,8 @@ for i in range(n_frames):
 
 headers = ["Frame", "qx", "qy", "qz", "qw", "tx", "ty", "tz"]
 
-pd.DataFrame(mesh_world_tibia, columns=headers).to_csv("../data/csv_files/tibiaTransformForUnity.csv", index=False)
-pd.DataFrame(mesh_world_femur, columns=headers).to_csv("../data/csv_files/femurTransformForUnity.csv", index=False)
+pd.DataFrame(mesh_world_tibia, columns=headers).to_csv("../../data/csv_files/tibiaTransformForUnity.csv", index=False)
+pd.DataFrame(mesh_world_femur, columns=headers).to_csv("../../data/csv_files/femurTransformForUnity.csv", index=False)
 
 print("CSV for Unity written.")
 
@@ -216,7 +216,7 @@ if "Frame" in motive_femur.columns:
 else:
     femur_markers_table.insert(0, "Frame", np.arange(n_frames))
 
-tibia_markers_table.to_csv("../data/csv_files/tibiaMarkersForUnity.csv", index=False)
-femur_markers_table.to_csv("../data/csv_files/femurMarkersForUnity.csv", index=False)
+tibia_markers_table.to_csv("../../data/csv_files/tibiaMarkersForUnity.csv", index=False)
+femur_markers_table.to_csv("../../data/csv_files/femurMarkersForUnity.csv", index=False)
 
 print("Markers for Unity written.")

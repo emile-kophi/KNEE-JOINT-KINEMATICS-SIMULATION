@@ -5,8 +5,8 @@ from scipy.spatial.transform import Rotation as R
 # ==================================================
 # 2) LOAD RB → WORLD TRANSFORMS (Motive)
 # ==================================================
-tibia_transform = pd.read_csv("../data/csv_files/tibiaTransform.csv")
-femur_transform = pd.read_csv("../data/csv_files/femurTransform.csv")
+tibia_transform = pd.read_csv("../../data/csv_files/tibiaTransform.csv")
+femur_transform = pd.read_csv("../../data/csv_files/femurTransform.csv")
 
 # MATLAB: quat2rotm expects [qw qx qy qz]
 # CSV order: qx qy qz qw  → reorder
@@ -27,8 +27,8 @@ femur_xyz = femur_transform.iloc[:, [5, 6, 7]].to_numpy()
 # ==================================================
 # 3) LOAD LOCAL RB POINTS (virtual points)
 # ==================================================
-tibia_vp = pd.read_csv("../data/csv_files/tibiaVP.csv")
-femur_vp = pd.read_csv("../data/csv_files/femurVP.csv")
+tibia_vp = pd.read_csv("../../data/csv_files/tibiaVP.csv")
+femur_vp = pd.read_csv("../../data/csv_files/femurVP.csv")
 
 # Tibia locals
 ALT_local = tibia_vp.iloc[0, [0, 1, 2]].to_numpy().reshape(3,1)
@@ -87,11 +87,11 @@ femur_cols = [
 ]
 
 pd.DataFrame(tibia_global, columns=tibia_cols).to_csv(
-     "../data/csv_files/tibiaGlobalPoints.csv", index=False
+     "../../data/csv_files/tibiaGlobalPoints.csv", index=False
 )
 
 pd.DataFrame(femur_global, columns=femur_cols).to_csv(
-      "../data/csv_files/femurGlobalPoints.csv", index=False
+      "../../data/csv_files/femurGlobalPoints.csv", index=False
 )
 
 print("Global points generated successfully.")

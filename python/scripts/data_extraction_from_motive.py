@@ -1,6 +1,6 @@
 import pandas as pd
 
-src = "../data/csv_files/dataRigidBody.csv"
+src = "../../data/csv_files/dataRigidBody.csv"
 
 bodies = {
     "Tibia": "tibiaTransform.csv",
@@ -65,5 +65,5 @@ for body, file in bodies.items():
     data_table.columns = [flat_name(c) for c in data_table.columns]
 
     # Salvataggio
-    data_table.to_csv(f"../data/csv_files/{file}", sep=",", decimal=".", index=False)
+    data_table.to_csv(f"../../data/csv_files/{file}", sep=",", decimal=".", index=False)
     print(f"File creato: {file}")
