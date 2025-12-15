@@ -9,13 +9,15 @@ def Global_points(
     femur_transform_csv: str | Path,
     tibia_vp_csv: str | Path,
     femur_vp_csv: str | Path,
-    output_dir: str | Path
+    output_dir: str | Path,
+    output_RT_dir: str | Path,
 ) -> None:
     """
     Generate global marker points for tibia and femur using:
     - RB → world transforms (from Motive)
     - local RB virtual points
     """
+    output_RT_dir = Path(output_RT_dir)
 
     tibia_transform_csv = Path(tibia_transform_csv)
     femur_transform_csv = Path(femur_transform_csv)
@@ -94,6 +96,8 @@ def Global_points(
     # MATLAB: mm → m
     tibia_global /= 1000
     femur_global /= 1000
+    np.savez(output_RT_dir / "rb_to_world_tibia.npz", R=R_t, T=T_t)
+    np.savez(output_RT_dir / "rb_to_wrld_femur.npz", R=R_f, T=T_f)
 
     # 4) WRITE CSV
     tibia_cols = [
