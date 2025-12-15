@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.transform import Rotation as R
 from pathlib import Path
-from kabasch_algorithm import kabsch_rt
+from scripts.kabsch_algorithm import kabsch_rt
 
 # Quaternion / rotation helpers
 
@@ -28,18 +28,18 @@ def Mesh_to_World_Pipeline(
     femur_vp_csv: str | Path,
     tibia_transform_csv: str | Path,
     femur_transform_csv: str | Path,
-    output_csv_dir: str | Path,
-    output_static_dir: str | Path,
+    output_dir: str | Path,
+    output_RT_dir: str | Path,
 ) -> None:
     """
     Complete pipeline:
     Unity mesh → RB local → Motive world → Unity CSV + markers
     """
 
-    output_csv_dir = Path(output_csv_dir)
-    output_static_dir = Path(output_static_dir)
-    output_csv_dir.mkdir(parents=True, exist_ok=True)
-    output_static_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = Path(output_dir)
+    output_RT_dir = Path(output_RT_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_RT_dir.mkdir(parents=True, exist_ok=True)
 
     # 1) UNITY MESH POINTS → coordinate correction
     C = np.array(
@@ -84,8 +84,8 @@ def Mesh_to_World_Pipeline(
     R_mesh_rb_tibia, T_mesh_rb_tibia = kabsch_rt(meshtibia_local, tibia_points_rb)
     R_mesh_rb_femur, T_mesh_rb_femur = kabsch_rt(meshfemur_local, femur_points_rb)
 
-    np.savez(output_static_dir / "mesh_to_rb_tibia.npz", R=R_mesh_rb_tibia, T=T_mesh_rb_tibia)
-    np.savez(output_static_dir / "mesh_to_rb_femur.npz", R=R_mesh_rb_femur, T=T_mesh_rb_femur)
+    np.savez(output_RT_dir / "mesh_to_rb_tibia.npz", R=R_mesh_rb_tibia, T=T_mesh_rb_tibia)
+    np.savez(output_RT_dir / "mesh_to_rb_femur.npz", R=R_mesh_rb_femur, T=T_mesh_rb_femur)
 
     # 4) RB → WORLD (Motive)
     motive_tibia = pd.read_csv(tibia_transform_csv)
@@ -138,10 +138,10 @@ def Mesh_to_World_Pipeline(
     headers = ["Frame","qx","qy","qz","qw","tx","ty","tz"]
 
     pd.DataFrame(mesh_world_tibia, columns=headers).to_csv(
-        output_csv_dir / "tibiaTransformForUnity.csv", index=False
+        output_dir / "tibiaTransformForUnity.csv", index=False
     )
     pd.DataFrame(mesh_world_femur, columns=headers).to_csv(
-        output_csv_dir / "femurTransformForUnity.csv", index=False
+        output_dir / "femurTransformForUnity.csv", index=False
     )
 
     # 6) MARKERS FOR UNITY
@@ -180,7 +180,7 @@ def Mesh_to_World_Pipeline(
     tibia_df.insert(0, "Frame", motive_tibia.get("Frame", np.arange(n_frames)))
     femur_df.insert(0, "Frame", motive_femur.get("Frame", np.arange(n_frames)))
 
-    tibia_df.to_csv(output_csv_dir / "tibiaMarkersForUnity.csv", index=False)
-    femur_df.to_csv(output_csv_dir / "femurMarkersForUnity.csv", index=False)
+    tibia_df.to_csv(output_dir / "tibiaMarkersForUnity.csv", index=False)
+    femur_df.to_csv(output_dir / "femurMarkersForUnity.csv", index=False)
 
     print("Mesh → World pipeline completed successfully.")
