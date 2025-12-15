@@ -53,8 +53,8 @@ R_mesh_rb_femur, T_mesh_rb_femur = kabsch_rt(meshfemur_local, femur_points_rb)
 # SAVE mesh → RB TRANSFORMS (STATIC GEOMETRY)
 # =========================================================
 
-BASE_DIR = Path(__file__).resolve().parent          # python/
-OUT_DIR = BASE_DIR.parent / "data" / "RmatrixAndT"
+BASE_DIR = Path(__file__).resolve().parent 
+OUT_DIR = BASE_DIR.parent / "../data" / "Rigid_Trasofrmation"
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
