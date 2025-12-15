@@ -41,7 +41,7 @@ def Read_dataRB(
 
     # NORMALIZE MULTIINDEX HEADER
     data.columns = pd.MultiIndex.from_tuples(
-        [_normalize_tuple(c) for c in data.columns]
+        [normalize_tuple(c) for c in data.columns]
     )
 
     # LOOP OVER RIGID BODIES
@@ -76,7 +76,7 @@ def Read_dataRB(
 
         # Flatten header
         data_table.columns = [
-            _flat_name(c, frame_col) for c in data_table.columns
+            flat_name(c, frame_col) for c in data_table.columns
         ]
 
         # SAVE CSV
