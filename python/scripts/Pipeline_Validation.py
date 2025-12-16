@@ -105,7 +105,7 @@ def knee_flexion_angle(
     return theta_deg
 
 
-# Reconstruction RMS error
+# RECONSTRUCTION RMS ERROR
 
 def RMS_error(
     R_world_tibia: np.ndarray,     # (N,3,3)
