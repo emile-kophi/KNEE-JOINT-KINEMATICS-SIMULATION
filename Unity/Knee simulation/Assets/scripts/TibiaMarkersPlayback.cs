@@ -5,13 +5,12 @@ using System.Globalization;
 
 public class TibiaMarkersPlayback : MonoBehaviour
 {
-    // Markers on the tibia mesh (only the 3 that exist on the mesh)
     public Transform tibiaAMT;
     public Transform tibiaLT;
     public Transform tibiaMT;
 
     [Header("CSV")]
-    public string csvFileName = "tibiaMarkersForUnity.csv";  // in StreamingAssets
+    public string csvFileName = "tibiaMarkersForUnity.csv"; 
     public TextAsset csvTextOverride;
     public int motiveFrames = 1757;
     public float playbackFps = 100f;
@@ -61,16 +60,12 @@ public class TibiaMarkersPlayback : MonoBehaviour
             if (string.IsNullOrEmpty(line)) continue;
 
             var v = line.Split(',');
-            // Frame + 9 floats = 10 fields minimum
             if (v.Length < 10) continue;
 
             float P(string s) => float.Parse(s, ci);
 
-            // AMT (cols 1,2,3)
             Vector3 AMT_world = new Vector3(P(v[1]), P(v[2]), P(v[3]));
-            // LT  (cols 4,5,6)
             Vector3 LT_world  = new Vector3(P(v[4]), P(v[5]), P(v[6]));
-            // MT  (cols 7,8,9)
             Vector3 MT_world  = new Vector3(P(v[7]), P(v[8]), P(v[9]));
 
             amt.Add(AMT_world);
@@ -94,8 +89,7 @@ public class TibiaMarkersPlayback : MonoBehaviour
         int max = Mathf.Min(motiveFrames - 1, N - 1);
         frame = loop ? frame % (max + 1) : Mathf.Clamp(frame, 0, max);
         int k = Mathf.Clamp(frame, 0, N - 1);
-
-        // Direct world positions, no pivot / flip hacks
+        
         if (tibiaAMT) tibiaAMT.position = AMT[k];
         if (tibiaLT)  tibiaLT.position  = LT[k];
         if (tibiaMT)  tibiaMT.position  = MT[k];

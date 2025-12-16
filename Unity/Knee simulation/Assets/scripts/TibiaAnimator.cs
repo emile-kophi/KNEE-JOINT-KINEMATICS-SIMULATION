@@ -11,8 +11,8 @@ public class TibiaAnimator : MonoBehaviour
     public bool loop = true;
 
     [Header("Offset (applied after CSV)")]
-    public Vector3 rotationOffsetEuler;   // opzionale
-    public Vector3 positionOffsetLocal;   // opzionale
+    public Vector3 rotationOffsetEuler;   
+    public Vector3 positionOffsetLocal; 
 
     private readonly List<Vector3> positions = new();
     private readonly List<Quaternion> rotations = new();
@@ -52,13 +52,13 @@ public class TibiaAnimator : MonoBehaviour
                 if (v.Length < 8)
                     continue;
 
-                // === Quaternion (qx qy qz qw) ===
+                // Quaternion (qx qy qz qw) 
                 float qx = float.Parse(v[1], ci);
                 float qy = float.Parse(v[2], ci);
                 float qz = float.Parse(v[3], ci);
                 float qw = float.Parse(v[4], ci);
 
-                // === Position (x y z) ===
+                //  Position (x y z) 
                 float x  = float.Parse(v[5], ci);
                 float y  = float.Parse(v[6], ci);
                 float z  = float.Parse(v[7], ci);

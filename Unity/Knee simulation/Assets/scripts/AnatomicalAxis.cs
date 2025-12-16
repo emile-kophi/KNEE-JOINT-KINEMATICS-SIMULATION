@@ -7,7 +7,7 @@ public class AnatomicalAxis : MonoBehaviour
     public Transform Dist;
 
     [Header("Axis length extension")]
-    public float extension = 0.2f;   // quanto lo prolunghi oltre i punti (metri)
+    public float extension = 0.2f;   //anatomical axes extension
 
     private LineRenderer line;
 

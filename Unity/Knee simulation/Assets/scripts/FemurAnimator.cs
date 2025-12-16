@@ -11,8 +11,8 @@ public class FemurAnimator : MonoBehaviour
     public bool loop = true;
 
     [Header("Offset (applied after CSV)")]
-    public Vector3 rotationOffsetEuler;   // optional
-    public Vector3 positionOffsetLocal;   // optional
+    public Vector3 rotationOffsetEuler; 
+    public Vector3 positionOffsetLocal;   
 
     private readonly List<Vector3> positions = new();
     private readonly List<Quaternion> rotations = new();
@@ -63,7 +63,6 @@ public class FemurAnimator : MonoBehaviour
                 float y = float.Parse(v[6], ci);
                 float z = float.Parse(v[7], ci);
 
-                // === NON APPLICARE PIÙ ALCUN FLIP ===
                 rotations.Add(new Quaternion(qx, qy, qz, qw));
                 positions.Add(new Vector3(x, y, z));
             }

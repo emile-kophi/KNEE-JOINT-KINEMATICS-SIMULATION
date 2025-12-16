@@ -5,13 +5,13 @@ using System.Globalization;
 
 public class FemurMarkersPlayback : MonoBehaviour
 {
-    public Transform femurAF;   // TF = AF
+    public Transform femurAF;   // AF=TF (femoral head)
     public Transform femurLF;
     public Transform femurMF;
 
     [Header("CSV")]
-    public string csvFileName = "femurMarkersForUnity.csv";   // in StreamingAssets
-    public TextAsset csvTextOverride;                         // optional
+    public string csvFileName = "femurMarkersForUnity.csv"; 
+    public TextAsset csvTextOverride;
     public int motiveFrames = 1757;
     public float playbackFps = 100f;
     public bool loop = true;
@@ -60,7 +60,6 @@ public class FemurMarkersPlayback : MonoBehaviour
             if (string.IsNullOrEmpty(line)) continue;
 
             var v = line.Split(',');
-            // Frame + 9 floats = 10 fields minimum
             if (v.Length < 10) continue;
 
             float P(string s) => float.Parse(s, ci);
