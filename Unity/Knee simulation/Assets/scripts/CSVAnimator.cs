@@ -3,35 +3,25 @@ using UnityEngine;
 using System.IO;
 using System.Globalization;
 
-public class FemurAnimator : MonoBehaviour
+public class CSVTransformAnimator : MonoBehaviour
 {
-    [Header("CSV")]
-    public string csvFileName = "femurTransformForUnity.csv";
+    [Header("CSV Settings")]
+    public string csvFileName;
     public float frameRate = 100f;
     public bool loop = true;
-
-    [Header("Offset (applied after CSV)")]
-    public Vector3 rotationOffsetEuler; 
-    public Vector3 positionOffsetLocal;   
 
     private readonly List<Vector3> positions = new();
     private readonly List<Quaternion> rotations = new();
 
-    private int currentFrame = 0;
     private float timer;
-
-    private Quaternion rotationOffset;
-    private Vector3 positionOffset;
+    private int currentFrame;
 
     void Start()
     {
-        rotationOffset = Quaternion.Euler(rotationOffsetEuler);
-        positionOffset = positionOffsetLocal;
-
         string filePath = Path.Combine(Application.streamingAssetsPath, csvFileName);
         if (!File.Exists(filePath))
         {
-            Debug.LogError("CSV not found: " + filePath);
+            Debug.LogError($"CSV not found: {filePath}");
             enabled = false;
             return;
         }
@@ -40,7 +30,7 @@ public class FemurAnimator : MonoBehaviour
 
         using (var reader = new StreamReader(filePath))
         {
-            reader.ReadLine(); // skip header
+            reader.ReadLine(); // header
 
             while (!reader.EndOfStream)
             {
@@ -52,13 +42,13 @@ public class FemurAnimator : MonoBehaviour
                 if (v.Length < 8)
                     continue;
 
-                // quaternion (qx qy qz qw)
+                // Quaternion (qx qy qz qw)
                 float qx = float.Parse(v[1], ci);
                 float qy = float.Parse(v[2], ci);
                 float qz = float.Parse(v[3], ci);
                 float qw = float.Parse(v[4], ci);
 
-                // position (x y z)
+                // Position (x y z)
                 float x = float.Parse(v[5], ci);
                 float y = float.Parse(v[6], ci);
                 float z = float.Parse(v[7], ci);
@@ -90,11 +80,7 @@ public class FemurAnimator : MonoBehaviour
 
         currentFrame = targetFrame;
 
-        Vector3 posCSV = positions[currentFrame];
-        Quaternion rotCSV = rotations[currentFrame];
-
-        // Apply optional offsets
-        transform.position = posCSV + rotCSV * positionOffset;
-        transform.rotation = rotCSV * rotationOffset;
+        transform.position = positions[currentFrame];
+        transform.rotation = rotations[currentFrame];
     }
 }
