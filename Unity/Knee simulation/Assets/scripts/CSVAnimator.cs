@@ -3,7 +3,7 @@ using UnityEngine;
 using System.IO;
 using System.Globalization;
 
-public class CSVTransformAnimator : MonoBehaviour
+public class CSVAnimator : MonoBehaviour
 {
     [Header("CSV Settings")]
     public string csvFileName;

@@ -69,10 +69,10 @@ def Mesh_to_World_Pipeline(
         [-0.03962225,  -0.004840371,  0.01212757],  # MF
     ], dtype=float).T
     meshpatella_local_unity = np.array([
-        [0.009064526,  -0.01924707,   0.03768351],  # PP
-        [ -0.01063338,  0.001752017, 0.05232742],  # MP
-        [0.02640302,  -0.004857672,  0.03159491],  # LP
-    ], dtype=float).T
+    [0.001044095, -0.02765156, -0.005900663],  # PP 
+   [-0.01865382, -0.006652482,  0.008743234],  # MP 
+    [0.01838263, -0.01326214, -0.01198923],    # LP 
+], dtype=float).T
 
     meshtibia_local = C @ meshtibia_local_unity
     meshfemur_local = C @ meshfemur_local_unity
@@ -124,8 +124,6 @@ def Mesh_to_World_Pipeline(
     rb_world_femur_wxyz = motive_femur[
         ["Femur_Rotation_W","Femur_Rotation_X","Femur_Rotation_Y","Femur_Rotation_Z"]
     ].to_numpy()
-
-    n_frames = len(motive_patella)
 
     rb_world_patella_wxyz = motive_patella[
         ["Patella_Rotation_W","Patella_Rotation_X","Patella_Rotation_Y","Patella_Rotation_Z"]
