@@ -2,7 +2,10 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-# helpers
+
+# =============================================================================
+# LOAD TRANSFORMS
+# =============================================================================
 
 def load_mesh_to_world(mesh_to_world: str | Path) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -10,24 +13,28 @@ def load_mesh_to_world(mesh_to_world: str | Path) -> tuple[np.ndarray, np.ndarra
     """
     mesh_to_world = Path(mesh_to_world)
     data = np.load(mesh_to_world)
+
     R_all = data["R"]
     T_all = data["T"]
 
     if R_all.ndim != 3 or R_all.shape[1:] != (3, 3):
-        raise ValueError(f"Invalid R shape in {mesh_to_world}: {R_all.shape}. Expected (N,3,3).")
+        raise ValueError(f"Invalid R shape: {R_all.shape}")
 
     if T_all.ndim != 2 or T_all.shape[1] != 3:
-        raise ValueError(f"Invalid T shape in {mesh_to_world}: {T_all.shape}. Expected (N,3).")
+        raise ValueError(f"Invalid T shape: {T_all.shape}")
 
     return R_all, T_all
 
-#  Knee flexion angle (pure, no quaternion recomputation)
+
+# =============================================================================
+# KNEE FLEXION ANGLE (DO NOT MODIFY)
+# =============================================================================
 
 def knee_flexion_angle(
-    R_world_tibia: np.ndarray,   # (N,3,3)
-    T_world_tibia: np.ndarray,   # (N,3)
-    R_world_femur: np.ndarray,   # (N,3,3)
-    T_world_femur: np.ndarray,   # (N,3)
+    R_world_tibia: np.ndarray,
+    T_world_tibia: np.ndarray,
+    R_world_femur: np.ndarray,
+    T_world_femur: np.ndarray,
     plot: bool = False
 ) -> np.ndarray:
     """
@@ -40,25 +47,24 @@ def knee_flexion_angle(
     if R_world_femur.shape[0] != n_frames:
         raise ValueError("Tibia and Femur transforms must have the same number of frames.")
 
-    # Unity → Motive-like correction used in your pipeline (Blender-like)
-    C = np.diag([-1.0, 1.0, -1.0])
+    # 180° rotation around Y (Blender → Motive)
+    Rot_B2M = np.diag([-1.0, 1.0, -1.0])
 
-    # Anatomical points (Unity local)
-    Tibia_Prox = C @ np.array([0.0008561252, 0.09804206, 0.01295095], dtype=float)
-    Tibia_Dist = C @ np.array([0.003904605,  0.3762208,  0.01639927], dtype=float)
+    # Anatomical points (mesh local, Motive-like)
+    Tibia_Prox = Rot_B2M @ np.array([-0.001619,  0.186731, -0.012323], dtype=float)
+    Tibia_Dist = Rot_B2M @ np.array([ 0.002285, -0.18949,   0.004076], dtype=float)
 
-    Femur_Prox = C @ np.array([0.03055387,  -0.3575693,  0.0149763], dtype=float)
-    Femur_Dist = C @ np.array([0.004923976, -0.04483421, 0.01108846], dtype=float)
+    Femur_Head = Rot_B2M @ np.array([-0.017593,  0.225445,  0.028621], dtype=float)
+    Femur_Dist = Rot_B2M @ np.array([-0.012257, -0.222853, -0.01539 ], dtype=float)
 
-    # Femur condyles axis (Unity local)
-    LF_local = C @ np.array([ 0.03755924, -0.001844588, -0.01695582], dtype=float)
-    MF_local = C @ np.array([-0.03962225, -0.004840371,  0.01212757], dtype=float)
+    LF_local = Rot_B2M @ np.array([ 0.022548, -0.207434, -0.032849], dtype=float)
+    MF_local = Rot_B2M @ np.array([-0.054633, -0.204439, -0.003766], dtype=float)
 
     theta_deg = np.zeros(n_frames, dtype=float)
 
     for i in range(n_frames):
 
-        # Tibia anatomical axis in world
+        # Tibia axis
         R_t = R_world_tibia[i]
         T_t = T_world_tibia[i]
 
@@ -68,28 +74,27 @@ def knee_flexion_angle(
         axis_tibia = Pd - Pp
         axis_tibia /= np.linalg.norm(axis_tibia)
 
-        # Femur anatomical axis in world
+        # Femur axis
         R_f = R_world_femur[i]
         T_f = T_world_femur[i]
 
-        Fp = R_f @ Femur_Prox + T_f
+        Fp = R_f @ Femur_Head + T_f
         Fd = R_f @ Femur_Dist + T_f
 
         axis_femur = Fd - Fp
         axis_femur /= np.linalg.norm(axis_femur)
 
-        # Condyle axis in world (LF - MF)
+        # Condylar axis
         LF = R_f @ LF_local + T_f
         MF = R_f @ MF_local + T_f
 
         condyle_axis = LF - MF
         condyle_axis /= np.linalg.norm(condyle_axis)
 
-        # Project tibia axis onto femur sagittal plane
+        # Projection
         t_proj = axis_tibia - np.dot(axis_tibia, condyle_axis) * condyle_axis
         t_proj /= np.linalg.norm(t_proj)
 
-        # Flexion angle
         cosang = np.clip(np.dot(axis_femur, t_proj), -1.0, 1.0)
         theta_deg[i] = np.degrees(np.arccos(cosang))
 
@@ -105,29 +110,40 @@ def knee_flexion_angle(
     return theta_deg
 
 
-# RECONSTRUCTION RMS ERROR
+# =============================================================================
+# RMS RECONSTRUCTION ERROR (MOTIVE WORLD)
+# =============================================================================
 
 def RMS_error(
-    R_world_tibia: np.ndarray,     # (N,3,3)
-    T_world_tibia: np.ndarray,     # (N,3)
-    R_world_femur: np.ndarray,     # (N,3,3)
-    T_world_femur: np.ndarray,     # (N,3)
-    meshtibia_local: np.ndarray,   # (3,3)
-    meshfemur_local: np.ndarray,   # (3,3)
+    R_world_tibia: np.ndarray,
+    T_world_tibia: np.ndarray,
+    R_world_femur: np.ndarray,
+    T_world_femur: np.ndarray,
+    R_world_patella: np.ndarray,
+    T_world_patella: np.ndarray,
+    meshtibia_local: np.ndarray,
+    meshfemur_local: np.ndarray,
+    meshpatella_local: np.ndarray,
     tibia_global_csv: str | Path,
     femur_global_csv: str | Path,
-) -> tuple[np.ndarray, np.ndarray]:
+    patella_global_csv: str | Path,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Compute RMS reconstruction error between:
-    - reconstructed mesh points (mesh → world)
-    - true Motive global marker points
+    RMS reconstruction error between:
+    reconstructed mesh points (mesh → world)
+    and Motive global marker points.
+
+    NOTE:
+    - R_world, T_world are Unity world (LH)
+    - GlobalPoints.csv are Motive world (RH)
     """
 
-    tibia_global_csv = Path(tibia_global_csv)
-    femur_global_csv = Path(femur_global_csv)
+    # Unity ↔ Motive conversion (self-inverse)
+    S = np.diag([1.0, 1.0, -1.0])
 
     T_t = pd.read_csv(tibia_global_csv)
     T_f = pd.read_csv(femur_global_csv)
+    T_p = pd.read_csv(patella_global_csv)
 
     def getB(T, i, p):
         return np.array([
@@ -138,19 +154,18 @@ def RMS_error(
 
     n_frames = R_world_tibia.shape[0]
 
-    if R_world_femur.shape[0] != n_frames:
-        raise ValueError("Tibia and Femur transforms must have the same number of frames.")
-
-    err_tibia = np.zeros(n_frames, dtype=float)
-    err_femur = np.zeros(n_frames, dtype=float)
+    err_tibia   = np.zeros(n_frames)
+    err_femur   = np.zeros(n_frames)
+    err_patella = np.zeros(n_frames)
 
     for i in range(n_frames):
 
-        # TIBIA
-        P_rec = (
-            R_world_tibia[i] @ meshtibia_local
+        # ---------------- TIBIA ----------------
+        P_rec_unity = (
+            R_world_tibia[i] @ (S @ meshtibia_local)
             + T_world_tibia[i][:, None]
         )
+        P_rec = S @ P_rec_unity   # back to Motive world
 
         P_true = np.column_stack([
             getB(T_t, i, "tibiaAMT"),
@@ -160,11 +175,12 @@ def RMS_error(
 
         err_tibia[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
 
-        # FEMUR 
-        P_rec = (
-            R_world_femur[i] @ meshfemur_local
+        # ---------------- FEMUR ----------------
+        P_rec_unity = (
+            R_world_femur[i] @ (S @ meshfemur_local)
             + T_world_femur[i][:, None]
         )
+        P_rec = S @ P_rec_unity
 
         P_true = np.column_stack([
             getB(T_f, i, "femurAF"),
@@ -174,4 +190,19 @@ def RMS_error(
 
         err_femur[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
 
-    return err_tibia, err_femur
+        # ---------------- PATELLA ----------------
+        P_rec_unity = (
+            R_world_patella[i] @ (S @ meshpatella_local)
+            + T_world_patella[i][:, None]
+        )
+        P_rec = S @ P_rec_unity
+
+        P_true = np.column_stack([
+            getB(T_p, i, "patellaPP"),
+            getB(T_p, i, "patellaMP"),
+            getB(T_p, i, "patellaLP"),
+        ])
+
+        err_patella[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
+
+    return err_tibia, err_femur, err_patella

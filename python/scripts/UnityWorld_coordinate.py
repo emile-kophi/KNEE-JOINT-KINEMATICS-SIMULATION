@@ -5,6 +5,10 @@ from pathlib import Path
 from .kabsch_algorithm import kabsch_rt
 
 
+# =============================================================================
+# QUATERNION / ROTATION HELPERS
+# =============================================================================
+
 def Converter_R_to_QmatlabStyle(rotm: np.ndarray) -> np.ndarray:
     """
     Convert rotation matrix to MATLAB-style quaternion [w x y z].
@@ -19,6 +23,11 @@ def Converter_Q_to_R(q_wxyz: np.ndarray) -> np.ndarray:
     """
     q_xyzw = np.array([q_wxyz[1], q_wxyz[2], q_wxyz[3], q_wxyz[0]], dtype=float)
     return R.from_quat(q_xyzw).as_matrix()
+
+
+# =============================================================================
+# MAIN PIPELINE
+# =============================================================================
 
 def Mesh_to_World_Pipeline(
     tibia_vp_csv: str | Path,
@@ -35,6 +44,9 @@ def Mesh_to_World_Pipeline(
     Unity mesh → RB local → Motive world → Unity CSV + RT matrices
     """
 
+    # -------------------------------------------------------------------------
+    # PATH NORMALIZATION
+    # -------------------------------------------------------------------------
     tibia_vp_csv = Path(tibia_vp_csv)
     femur_vp_csv = Path(femur_vp_csv)
     patella_vp_csv = Path(patella_vp_csv)
@@ -49,11 +61,18 @@ def Mesh_to_World_Pipeline(
     output_dir.mkdir(parents=True, exist_ok=True)
     output_RT_dir.mkdir(parents=True, exist_ok=True)
 
+    # -------------------------------------------------------------------------
+    # CONSTANTS
+    # -------------------------------------------------------------------------
     # Motive RH → Unity LH
     S = np.diag([1.0, 1.0, -1.0])
 
     # 180° rotation around Y (Blender → Motive)
     Rot_B2M = np.diag([-1.0, 1.0, -1.0])
+
+    # -------------------------------------------------------------------------
+    # MESH LOCAL POINTS (UNITY LOCAL, meters)
+    # -------------------------------------------------------------------------
 
     # FEMUR (AF, LF, MF)
     meshfemur_local_blender = np.array([
@@ -81,6 +100,9 @@ def Mesh_to_World_Pipeline(
     meshtibia_local   = Rot_B2M @ meshtibia_local_blender
     meshpatella_local = Rot_B2M @ meshpatella_local_blender
 
+    # -------------------------------------------------------------------------
+    # RB-LOCAL VIRTUAL POINTS (FROM MOTIVE VP, meters)
+    # -------------------------------------------------------------------------
     tibia_vp = pd.read_csv(tibia_vp_csv)
     femur_vp = pd.read_csv(femur_vp_csv)
     patella_vp = pd.read_csv(patella_vp_csv)
@@ -103,6 +125,9 @@ def Mesh_to_World_Pipeline(
         patella_vp.loc[0, ["patellaLPlocal_X","patellaLPlocal_Y","patellaLPlocal_Z"]],
     ], dtype=float).T / 1000.0
 
+    # -------------------------------------------------------------------------
+    # KABSCH: MESH → RB
+    # -------------------------------------------------------------------------
     R_mesh_rb_tibia,   T_mesh_rb_tibia   = kabsch_rt(meshtibia_local,   tibia_points_rb)
     R_mesh_rb_femur,   T_mesh_rb_femur   = kabsch_rt(meshfemur_local,   femur_points_rb)
     R_mesh_rb_patella, T_mesh_rb_patella = kabsch_rt(meshpatella_local, patella_points_rb)
@@ -111,7 +136,9 @@ def Mesh_to_World_Pipeline(
     np.savez(output_RT_dir / "mesh_to_rb_femur.npz",   R=R_mesh_rb_femur,   T=T_mesh_rb_femur)
     np.savez(output_RT_dir / "mesh_to_rb_patella.npz", R=R_mesh_rb_patella, T=T_mesh_rb_patella)
 
-
+    # -------------------------------------------------------------------------
+    # LOAD RB → WORLD (Motive)
+    # -------------------------------------------------------------------------
     Tt = pd.read_csv(tibia_transform_csv)
     Tf = pd.read_csv(femur_transform_csv)
     Tp = pd.read_csv(patella_transform_csv)
@@ -126,10 +153,25 @@ def Mesh_to_World_Pipeline(
     translation_femur   = Tf[["Femur_Position_X","Femur_Position_Y","Femur_Position_Z"]].to_numpy().T / 1000.0
     translation_patella = Tp[["Patella_Position_X","Patella_Position_Y","Patella_Position_Z"]].to_numpy().T / 1000.0
 
+    # -------------------------------------------------------------------------
+    # PREALLOCATE OUTPUT
+    # -------------------------------------------------------------------------
     mesh_world_tibia   = np.zeros((n_frames, 8))
     mesh_world_femur   = np.zeros((n_frames, 8))
     mesh_world_patella = np.zeros((n_frames, 8))
 
+    R_world_tibia_all   = np.zeros((n_frames, 3, 3))
+    T_world_tibia_all   = np.zeros((n_frames, 3))
+
+    R_world_femur_all   = np.zeros((n_frames, 3, 3))
+    T_world_femur_all   = np.zeros((n_frames, 3))
+
+    R_world_patella_all = np.zeros((n_frames, 3, 3))
+    T_world_patella_all = np.zeros((n_frames, 3))
+
+    # -------------------------------------------------------------------------
+    # MAIN LOOP
+    # -------------------------------------------------------------------------
     for i in range(n_frames):
 
         # ---------------- TIBIA ----------------
@@ -141,6 +183,9 @@ def Mesh_to_World_Pipeline(
 
         R_world = S @ R_tmp @ S
         T_world = S @ T_tmp
+
+        R_world_tibia_all[i] = R_world
+        T_world_tibia_all[i] = T_world.ravel()
 
         q = Converter_R_to_QmatlabStyle(R_world)
         mesh_world_tibia[i] = [i, q[1], q[2], q[3], q[0], *T_world.ravel()]
@@ -155,6 +200,9 @@ def Mesh_to_World_Pipeline(
         R_world = S @ R_tmp @ S
         T_world = S @ T_tmp
 
+        R_world_femur_all[i] = R_world
+        T_world_femur_all[i] = T_world.ravel()
+
         q = Converter_R_to_QmatlabStyle(R_world)
         mesh_world_femur[i] = [i, q[1], q[2], q[3], q[0], *T_world.ravel()]
 
@@ -168,10 +216,27 @@ def Mesh_to_World_Pipeline(
         R_world = S @ R_tmp @ S
         T_world = S @ T_tmp
 
+        R_world_patella_all[i] = R_world
+        T_world_patella_all[i] = T_world.ravel()
+
         q = Converter_R_to_QmatlabStyle(R_world)
         mesh_world_patella[i] = [i, q[1], q[2], q[3], q[0], *T_world.ravel()]
 
+    # -------------------------------------------------------------------------
+    # SAVE WORLD RT MATRICES
+    # -------------------------------------------------------------------------
+    np.savez(output_RT_dir / "mesh_to_world_tibia.npz",
+             R=R_world_tibia_all, T=T_world_tibia_all)
 
+    np.savez(output_RT_dir / "mesh_to_world_femur.npz",
+             R=R_world_femur_all, T=T_world_femur_all)
+
+    np.savez(output_RT_dir / "mesh_to_world_patella.npz",
+             R=R_world_patella_all, T=T_world_patella_all)
+
+    # -------------------------------------------------------------------------
+    # WRITE CSV FOR UNITY
+    # -------------------------------------------------------------------------
     headers = ["Frame","qx","qy","qz","qw","tx","ty","tz"]
 
     pd.DataFrame(mesh_world_tibia,   columns=headers).to_csv(output_dir / "tibiaTransformForUnity.csv",   index=False)
