@@ -2,11 +2,6 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-
-# =============================================================================
-# LOAD TRANSFORMS
-# =============================================================================
-
 def load_mesh_to_world(mesh_to_world: str | Path) -> tuple[np.ndarray, np.ndarray]:
     """
     Load (R, T) from a .npz file produced by Mesh_to_World_Pipeline.
@@ -24,11 +19,6 @@ def load_mesh_to_world(mesh_to_world: str | Path) -> tuple[np.ndarray, np.ndarra
         raise ValueError(f"Invalid T shape: {T_all.shape}")
 
     return R_all, T_all
-
-
-# =============================================================================
-# KNEE FLEXION ANGLE (DO NOT MODIFY)
-# =============================================================================
 
 def knee_flexion_angle(
     R_world_tibia: np.ndarray,
@@ -109,11 +99,7 @@ def knee_flexion_angle(
 
     return theta_deg
 
-
-# =============================================================================
 # RMS RECONSTRUCTION ERROR (MOTIVE WORLD)
-# =============================================================================
-
 def RMS_error(
     R_world_tibia: np.ndarray,
     T_world_tibia: np.ndarray,
@@ -160,7 +146,7 @@ def RMS_error(
 
     for i in range(n_frames):
 
-        # ---------------- TIBIA ----------------
+        # TIBIA 
         P_rec_unity = (
             R_world_tibia[i] @ (S @ meshtibia_local)
             + T_world_tibia[i][:, None]
@@ -175,7 +161,7 @@ def RMS_error(
 
         err_tibia[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
 
-        # ---------------- FEMUR ----------------
+        # FEMUR
         P_rec_unity = (
             R_world_femur[i] @ (S @ meshfemur_local)
             + T_world_femur[i][:, None]
@@ -190,7 +176,7 @@ def RMS_error(
 
         err_femur[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
 
-        # ---------------- PATELLA ----------------
+        # PATELLA
         P_rec_unity = (
             R_world_patella[i] @ (S @ meshpatella_local)
             + T_world_patella[i][:, None]

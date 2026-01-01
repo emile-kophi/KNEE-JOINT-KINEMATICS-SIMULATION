@@ -635,8 +635,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d94295c3517bbf4e8489414973f8499, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Prox: {fileID: 1040852535}
-  Dist: {fileID: 763555386}
+  Prox: {fileID: 780142251}
+  Dist: {fileID: 1469534775}
   extension: 0.2
 --- !u!120 &373127329
 LineRenderer:
@@ -1533,9 +1533,9 @@ MonoBehaviour:
   csvFileName: tibiaTransformForUnity.csv
   frameRate: 100
   loop: 1
---- !u!4 &763555386 stripped
+--- !u!4 &780142251 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 6735266420070397403, guid: 96bf2513a27c16540a0ecfa9b9bfe126, type: 3}
+  m_CorrespondingSourceObject: {fileID: -2537693496355301866, guid: 96bf2513a27c16540a0ecfa9b9bfe126, type: 3}
   m_PrefabInstance: {fileID: 183236744}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &817213278
@@ -2152,11 +2152,6 @@ Transform:
   - {fileID: 404739080}
   m_Father: {fileID: 1258137148}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &1040852535 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7630614051947675508, guid: 96bf2513a27c16540a0ecfa9b9bfe126, type: 3}
-  m_PrefabInstance: {fileID: 183236744}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1086135326 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 84170f111961211408604c628046b269, type: 3}
@@ -2882,6 +2877,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1430662496}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1469534775 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2405025999897220115, guid: 96bf2513a27c16540a0ecfa9b9bfe126, type: 3}
+  m_PrefabInstance: {fileID: 183236744}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1477916195
 GameObject:
   m_ObjectHideFlags: 0

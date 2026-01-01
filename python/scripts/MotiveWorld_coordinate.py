@@ -92,7 +92,7 @@ def Global_points(
 
     for i in range(n_frames):
 
-        # ---- TIBIA ----
+        #  TIBIA 
         R_t = tibia_rotm[i]
         T_t = tibia_xyz[i].reshape(3, 1)
 
@@ -104,7 +104,7 @@ def Global_points(
         tibia_global[i, 6:9]  = (R_t @ LT_local  + T_t).ravel()
         tibia_global[i, 9:12] = (R_t @ MT_local  + T_t).ravel()
 
-        # ---- FEMUR ----
+        #  FEMUR 
         R_f = femur_rotm[i]
         T_f = femur_xyz[i].reshape(3, 1)
 
@@ -115,7 +115,7 @@ def Global_points(
         femur_global[i, 3:6] = (R_f @ LF_local + T_f).ravel()
         femur_global[i, 6:9] = (R_f @ MF_local + T_f).ravel()
 
-        # ---- PATELLA ----
+        #  PATELLA 
         R_p = patella_rotm[i]
         T_p = patella_xyz[i].reshape(3, 1)
 

@@ -26,10 +26,6 @@ def Read_dataRB(
     sep=";",
     decimal=","
 ) -> None:
-    """
-    Split a Motive rigid-body CSV file into one CSV per body
-    containing rotation (quaternion) and translation. 
-    """
     # READ CSV
     data = pd.read_csv(
         src_csv,
