@@ -28,8 +28,8 @@ def knee_flexion_angle(
     plot: bool = False
 ) -> np.ndarray:
     """
-    Compute anatomical knee flexion angle over time using ONLY the
-    mesh->world transforms already computed by the pipeline.
+    Relative knee flexion angle (tibia relative to femur),
+    zero-referenced to the first frame.
     """
 
     n_frames = R_world_tibia.shape[0]
@@ -37,10 +37,9 @@ def knee_flexion_angle(
     if R_world_femur.shape[0] != n_frames:
         raise ValueError("Tibia and Femur transforms must have the same number of frames.")
 
-    # 180° rotation around Y (Blender → Motive)
     Rot_B2M = np.diag([-1.0, 1.0, -1.0])
 
-    # Anatomical points (mesh local, Motive-like)
+    # Anatomical points (mesh local)
     Tibia_Prox = Rot_B2M @ np.array([-0.001619,  0.186731, -0.012323], dtype=float)
     Tibia_Dist = Rot_B2M @ np.array([ 0.002285, -0.18949,   0.004076], dtype=float)
 
@@ -54,50 +53,63 @@ def knee_flexion_angle(
 
     for i in range(n_frames):
 
-        # Tibia axis
         R_t = R_world_tibia[i]
         T_t = T_world_tibia[i]
 
-        Pp = R_t @ Tibia_Prox + T_t
-        Pd = R_t @ Tibia_Dist + T_t
-
-        axis_tibia = Pd - Pp
-        axis_tibia /= np.linalg.norm(axis_tibia)
-
-        # Femur axis
         R_f = R_world_femur[i]
         T_f = T_world_femur[i]
 
+        # Femur condylar axis 
+        LF = R_f @ LF_local + T_f
+        MF = R_f @ MF_local + T_f
+
+        condil_axis = LF - MF
+        condil_axis /= np.linalg.norm(condil_axis)
+
+        # Femur mechanical axis (reference)
         Fp = R_f @ Femur_Head + T_f
         Fd = R_f @ Femur_Dist + T_f
 
         axis_femur = Fd - Fp
         axis_femur /= np.linalg.norm(axis_femur)
 
-        # Condylar axis
-        LF = R_f @ LF_local + T_f
-        MF = R_f @ MF_local + T_f
+        # Reference direction in sagittal plane
+        x_ref = axis_femur - np.dot(axis_femur, condil_axis) * condil_axis
+        x_ref /= np.linalg.norm(x_ref)
 
-        condyle_axis = LF - MF
-        condyle_axis /= np.linalg.norm(condyle_axis)
+        y_ref = np.cross(condil_axis, x_ref)
+        y_ref /= np.linalg.norm(y_ref)
 
-        # Projection
-        t_proj = axis_tibia - np.dot(axis_tibia, condyle_axis) * condyle_axis
-        t_proj /= np.linalg.norm(t_proj)
+        # Tibia mechanical axis
+        Pp = R_t @ Tibia_Prox + T_t
+        Pd = R_t @ Tibia_Dist + T_t
 
-        cosang = np.clip(np.dot(axis_femur, t_proj), -1.0, 1.0)
-        theta_deg[i] = np.degrees(np.arccos(cosang))
+        axis_tibia = Pd - Pp
+        axis_tibia /= np.linalg.norm(axis_tibia)
 
+        tibia_proj = axis_tibia - np.dot(axis_tibia, condil_axis) * condil_axis
+        tibia_proj /= np.linalg.norm(tibia_proj)
+
+        # relative angle 
+        cosang = np.clip(np.dot(x_ref, tibia_proj), -1.0, 1.0)
+        sinang = np.dot(y_ref, tibia_proj)
+
+        theta_deg[i] = np.degrees(np.arctan2(sinang, cosang))
+
+    # ZERO-REFERENCING (standard in biomechanics)
+    theta_base=theta_deg[0]
+    theta_deg = theta_deg - theta_deg[0]
     if plot:
         import matplotlib.pyplot as plt
         plt.figure()
         plt.plot(theta_deg)
-        plt.xlabel("Frame")
+        plt.xlabel(f"Frame | Reference angle {theta_base:.0f}° ")
         plt.ylabel("Flexion angle (deg)")
         plt.grid(True)
         plt.show()
 
     return theta_deg
+
 
 # RMS RECONSTRUCTION ERROR (MOTIVE WORLD)
 def RMS_error(
