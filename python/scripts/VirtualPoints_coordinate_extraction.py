@@ -26,9 +26,14 @@ def export_virtual_points(
 
         for point_name in cfg["points"]:
 
-            if point_name in mat_data:
+            # FORCE AF_local = [0, 0, 0]
+            if point_name == "femurAFlocal":
+                x, y, z = 0.0, 0.0, 0.0
+
+            elif point_name in mat_data:
                 coords = mat_data[point_name].flatten()
                 x, y, z = coords[0], coords[1], coords[2]
+
             else:
                 print(
                     f"Warning: {point_name} not found in {mat_file}. "
