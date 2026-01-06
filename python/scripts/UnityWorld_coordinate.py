@@ -25,6 +25,7 @@ def Mesh_to_World_Pipeline(
     patella_transform_csv: str | Path,
     output_dir: str | Path,
     output_RT_dir: str | Path,
+    anatomy: dict,
 ) -> None:
 
     tibia_vp_csv = Path(tibia_vp_csv)
@@ -44,30 +45,21 @@ def Mesh_to_World_Pipeline(
     use_patella = patella_vp_csv.is_file() and patella_transform_csv.is_file()
 
     S = np.diag([1.0, 1.0, -1.0])
-    Rot_B2M = np.diag([-1.0, 1.0, -1.0])
-
-    meshfemur_local_blender = np.array([
-        [-0.01759300,   0.2254449,   0.02862103],
-        [ 0.02254823,  -0.2074343,  -0.03284946],
-        [-0.05463326,  -0.2044385,  -0.00376609],
-    ], dtype=float).T
-
-    meshpatella_local_blender = np.array([
-        [ 0.00104400,  -0.02765099,  0.005901016],
-        [-0.01865400,  -0.00665200, -0.008743007],
-        [ 0.01838301,  -0.01326200,  0.01198900],
-    ], dtype=float).T
-
-    meshtibia_local_blender = np.array([
-        [-0.02177037,  -0.2164885,   0.01993167],
-        [ 0.03097912,   0.1695145,  -0.02298864],
-        [-0.03774497,   0.1665102,   0.005437955],
-    ], dtype=float).T
-
-    meshfemur_local   = Rot_B2M @ meshfemur_local_blender
-    meshtibia_local   = Rot_B2M @ meshtibia_local_blender
-    meshpatella_local = Rot_B2M @ meshpatella_local_blender
-
+    meshtibia_local= np.column_stack([
+        anatomy["tibia"]["AMT"],
+        anatomy["tibia"]["LT"],
+        anatomy["tibia"]["MT"],
+    ])
+    meshfemur_local= np.column_stack([
+        anatomy["femur"]["head"],
+        anatomy["femur"]["LF"],
+        anatomy["femur"]["MF"],
+    ])
+    meshpatella_local= np.column_stack([
+        anatomy["patella"]["PP"],
+        anatomy["patella"]["MP"],
+        anatomy["patella"]["LP"],
+    ])
     tibia_vp = pd.read_csv(tibia_vp_csv)
     femur_vp = pd.read_csv(femur_vp_csv)
     if use_patella:

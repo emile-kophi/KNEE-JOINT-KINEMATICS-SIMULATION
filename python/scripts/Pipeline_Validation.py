@@ -25,6 +25,7 @@ def knee_flexion_angle(
     T_world_tibia: np.ndarray,
     R_world_femur: np.ndarray,
     T_world_femur: np.ndarray,
+    anatomy: dict,
     plot: bool = False
 ) -> np.ndarray:
     """
@@ -37,17 +38,15 @@ def knee_flexion_angle(
     if R_world_femur.shape[0] != n_frames:
         raise ValueError("Tibia and Femur transforms must have the same number of frames.")
 
-    Rot_B2M = np.diag([-1.0, 1.0, -1.0])
-
     # Anatomical points (mesh local)
-    Tibia_Prox = Rot_B2M @ np.array([-0.001619,  0.186731, -0.012323], dtype=float)
-    Tibia_Dist = Rot_B2M @ np.array([ 0.002285, -0.18949,   0.004076], dtype=float)
+    Tibia_Prox = anatomy["tibia"]["prox"]
+    Tibia_Dist = anatomy["tibia"]["dist"]
 
-    Femur_Head = Rot_B2M @ np.array([-0.017593,  0.225445,  0.028621], dtype=float)
-    Femur_Dist = Rot_B2M @ np.array([-0.012257, -0.222853, -0.01539 ], dtype=float)
+    Femur_Head = anatomy["femur"]["head"]
+    Femur_Dist = anatomy["femur"]["dist"]
 
-    LF_local = Rot_B2M @ np.array([ 0.022548, -0.207434, -0.032849], dtype=float)
-    MF_local = Rot_B2M @ np.array([-0.054633, -0.204439, -0.003766], dtype=float)
+    LF_local = anatomy["femur"]["LF"]
+    MF_local = anatomy["femur"]["MF"]
 
     theta_deg = np.zeros(n_frames, dtype=float)
 
@@ -110,8 +109,6 @@ def knee_flexion_angle(
 
     return theta_deg
 
-
-# RMS RECONSTRUCTION ERROR (MOTIVE WORLD)
 def RMS_error(
     R_world_tibia: np.ndarray,
     T_world_tibia: np.ndarray,
@@ -119,26 +116,23 @@ def RMS_error(
     T_world_femur: np.ndarray,
     R_world_patella: np.ndarray,
     T_world_patella: np.ndarray,
-    meshtibia_local: np.ndarray,
-    meshfemur_local: np.ndarray,
-    meshpatella_local: np.ndarray,
+    anatomy: dict,
     tibia_global_csv: str | Path,
     femur_global_csv: str | Path,
     patella_global_csv: str | Path,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    RMS reconstruction error between:
-    reconstructed mesh points (mesh → world)
+    RMS reconstruction error between reconstructed mesh points (mesh → world)
     and Motive global marker points.
-
-    NOTE:
-    - R_world, T_world are Unity world (LH)
-    - GlobalPoints.csv are Motive world (RH)
+    Assumptions:
+    - R_world*, T_world* are in Unity world (LH)
+    - GlobalPoints.csv are in Motive world (RH)
     """
 
     # Unity ↔ Motive conversion (self-inverse)
     S = np.diag([1.0, 1.0, -1.0])
 
+    # Load Motive global points
     T_t = pd.read_csv(tibia_global_csv)
     T_f = pd.read_csv(femur_global_csv)
     T_p = pd.read_csv(patella_global_csv)
@@ -152,18 +146,38 @@ def RMS_error(
 
     n_frames = R_world_tibia.shape[0]
 
-    err_tibia   = np.zeros(n_frames)
-    err_femur   = np.zeros(n_frames)
-    err_patella = np.zeros(n_frames)
+    err_tibia   = np.zeros(n_frames, dtype=float)
+    err_femur   = np.zeros(n_frames, dtype=float)
+    err_patella = np.zeros(n_frames, dtype=float)
 
+    # Build LOCAL mesh point matrices ONCE (3 × N)
+    P_tibia_local = np.column_stack([
+        anatomy["tibia"]["AMT"],
+        anatomy["tibia"]["LT"],
+        anatomy["tibia"]["MT"],
+    ])
+
+    P_femur_local = np.column_stack([
+        anatomy["femur"]["head"],
+        anatomy["femur"]["LF"],
+        anatomy["femur"]["MF"],
+    ])
+
+    P_patella_local = np.column_stack([
+        anatomy["patella"]["PP"],
+        anatomy["patella"]["MP"],
+        anatomy["patella"]["LP"],
+    ])
+
+    # Frame loop
     for i in range(n_frames):
 
         # TIBIA 
         P_rec_unity = (
-            R_world_tibia[i] @ (S @ meshtibia_local)
+            R_world_tibia[i] @ (S @ P_tibia_local)
             + T_world_tibia[i][:, None]
         )
-        P_rec = S @ P_rec_unity   # back to Motive world
+        P_rec = S @ P_rec_unity  # back to Motive world
 
         P_true = np.column_stack([
             getB(T_t, i, "tibiaAMT"),
@@ -173,9 +187,9 @@ def RMS_error(
 
         err_tibia[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
 
-        # FEMUR
+        # FEMUR 
         P_rec_unity = (
-            R_world_femur[i] @ (S @ meshfemur_local)
+            R_world_femur[i] @ (S @ P_femur_local)
             + T_world_femur[i][:, None]
         )
         P_rec = S @ P_rec_unity
@@ -188,9 +202,9 @@ def RMS_error(
 
         err_femur[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
 
-        # PATELLA
+        # PATELLA 
         P_rec_unity = (
-            R_world_patella[i] @ (S @ meshpatella_local)
+            R_world_patella[i] @ (S @ P_patella_local)
             + T_world_patella[i][:, None]
         )
         P_rec = S @ P_rec_unity
