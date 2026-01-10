@@ -136,14 +136,14 @@ def Mesh_to_World_Pipeline(
     # MAIN LOOP
     for i in range(n_frames):
 
-        # ---------------- TIBIA ----------------
+        # TIBIA 
         R_rb = Converter_Q_to_R(rb_world_tibia_wxyz[i])
         T_rb = translation_tibia[:, i].reshape(3,1)
 
         R_tmp = R_rb @ R_mesh_rb_tibia
         T_tmp = R_rb @ T_mesh_rb_tibia + T_rb
 
-        # SAVE WORLD MOTIVE (NO S)
+        # SAVE WORLD MOTIVE
         R_world_tibia_all[i] = R_tmp
         T_world_tibia_all[i] = T_tmp.ravel()
 
@@ -154,7 +154,7 @@ def Mesh_to_World_Pipeline(
         q = Converter_R_to_QmatlabStyle(R_unity)
         mesh_world_tibia[i] = [i, q[1], q[2], q[3], q[0], *T_unity.ravel()]
 
-        # ---------------- FEMUR ----------------
+        # FEMUR 
         R_rb = Converter_Q_to_R(rb_world_femur_wxyz[i])
         T_rb = translation_femur[:, i].reshape(3,1)
 
@@ -170,7 +170,7 @@ def Mesh_to_World_Pipeline(
         q = Converter_R_to_QmatlabStyle(R_unity)
         mesh_world_femur[i] = [i, q[1], q[2], q[3], q[0], *T_unity.ravel()]
 
-        # ---------------- PATELLA ----------------
+        # PATELLA 
         if use_patella:
             R_rb = Converter_Q_to_R(rb_world_patella_wxyz[i])
             T_rb = translation_patella[:, i].reshape(3,1)
