@@ -198,9 +198,6 @@ def RMS_error(
     - GlobalPoints.csv are in Motive world (RH)
     """
 
-    # Unity ↔ Motive conversion (self-inverse)
-    S = np.diag([1.0, 1.0, 1.0])
-
     # Load Motive global points
     T_t = pd.read_csv(tibia_global_csv)
     T_f = pd.read_csv(femur_global_csv)
@@ -242,11 +239,11 @@ def RMS_error(
     for i in range(n_frames):
 
         # TIBIA 
-        P_rec_unity = (
-            R_world_tibia[i] @ (S @ P_tibia_local)
+        P_rec= (
+            R_world_tibia[i] @ (P_tibia_local)
             + T_world_tibia[i][:, None]
         )
-        P_rec = S @ P_rec_unity  # back to Motive world
+
 
         P_true = np.column_stack([
             getB(T_t, i, "tibiaAMT"),
@@ -257,11 +254,10 @@ def RMS_error(
         err_tibia[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
 
         # FEMUR 
-        P_rec_unity = (
-            R_world_femur[i] @ (S @ P_femur_local)
+        P_rec= (
+            R_world_femur[i] @ (P_femur_local)
             + T_world_femur[i][:, None]
         )
-        P_rec = S @ P_rec_unity
 
         P_true = np.column_stack([
             getB(T_f, i, "femurAF"),
@@ -272,11 +268,10 @@ def RMS_error(
         err_femur[i] = np.sqrt(np.mean(np.sum((P_rec - P_true) ** 2, axis=0)))
 
         # PATELLA 
-        P_rec_unity = (
-            R_world_patella[i] @ (S @ P_patella_local)
+        P_rec= (
+            R_world_patella[i] @ (P_patella_local)
             + T_world_patella[i][:, None]
         )
-        P_rec = S @ P_rec_unity
 
         P_true = np.column_stack([
             getB(T_p, i, "patellaPP"),
