@@ -110,11 +110,11 @@ def grood_suntay_angles(side: str, FemToTib: np.ndarray):
     c = np.clip(np.dot(e1, e3), -1.0, 1.0)
 
     if side.upper() == "LEFT":
-        VV = -(np.pi / 2.0 - np.arccos(c))
-        IE = np.arcsin(np.clip(np.dot(e2, i), -1.0, 1.0))
+        VV = (np.pi / 2.0 - np.arccos(c))
+        IE = -np.arcsin(np.clip(np.dot(e2, i), -1.0, 1.0))
     else:
-        VV = (np.arccos(c) - np.pi / 2.0)
-        IE = -np.arcsin(np.clip(np.dot(-e2, i), -1.0, 1.0))
+        VV = -(np.arccos(c) - np.pi / 2.0)
+        IE = np.arcsin(np.clip(np.dot(-e2, i), -1.0, 1.0))
 
     return np.degrees(FE), np.degrees(VV), np.degrees(IE)
 
