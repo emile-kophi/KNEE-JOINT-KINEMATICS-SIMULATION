@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
-public class PhysicalSurfaceContact : MonoBehaviour
+public class PhysicalSurfaceContactF_P : MonoBehaviour
 {
     [Header("Other bone")]
     public MeshFilter femurMeshFilter;
