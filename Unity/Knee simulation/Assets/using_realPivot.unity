@@ -1115,7 +1115,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 84170f111961211408604c628046b269, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 3832827abd6f56c4f97f1ffcc0692691, type: 2}
+      objectReference: {fileID: 2100000, guid: 9d9be94552d3d9249a89d22558bfc0af, type: 2}
     - target: {fileID: 919132149155446097, guid: 84170f111961211408604c628046b269, type: 3}
       propertyPath: m_Name
       value: Tibia
@@ -2203,7 +2203,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 45061410}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dda4915dc0434c54287d523af1b62957, type: 3}
   m_Name: 
@@ -2584,7 +2584,7 @@ MonoBehaviour:
   patellaPivot: {fileID: 1477916196}
   contactThreshold: 0.001
   normalDotThreshold: -0.3
-  samplingStep: 2
+  samplingStep: 10
 --- !u!1 &1321426954
 GameObject:
   m_ObjectHideFlags: 0
@@ -3110,7 +3110,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 4c4efc0935377e249b43d0fff89b3c12, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 3832827abd6f56c4f97f1ffcc0692691, type: 2}
+      objectReference: {fileID: 2100000, guid: 9d9be94552d3d9249a89d22558bfc0af, type: 2}
     - target: {fileID: -3950562658433944421, guid: 4c4efc0935377e249b43d0fff89b3c12, type: 3}
       propertyPath: m_Layer
       value: 7
