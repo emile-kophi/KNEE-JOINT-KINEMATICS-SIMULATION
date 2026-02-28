@@ -4,8 +4,8 @@ public class F_T_ContactVisualizer : MonoBehaviour
 {
     [Header("Bone Assignments")]
     public Transform tibiaObject;
-    public Transform pointMediale;
-    public Transform pointLaterale;
+    public Transform pointMedial;
+    public Transform pointLateral;
 
     [Header("Biomechanics Settings")]
     public float condyleRadius = 0.025f;
@@ -20,33 +20,33 @@ public class F_T_ContactVisualizer : MonoBehaviour
     public float maxScanDistance = 0.1f;
     public float contactThreshold = 0.005f;
 
-    private ContactHelper helperMediale;
-    private ContactHelper helperLaterale;
+    private ContactHelper helperMedial;
+    private ContactHelper helperLateral;
 
     void Start()
     {
-        helperMediale = new ContactHelper(pointMediale, colorMedial, dotSize, trailDuration);
-        helperLaterale = new ContactHelper(pointLaterale, colorLateral, dotSize, trailDuration);
+        helperMedial = new ContactHelper(pointMedial, colorMedial, dotSize, trailDuration);
+        helperLateral = new ContactHelper(pointLateral, colorLateral, dotSize, trailDuration);
     }
 
     void Update()
     {
-        helperMediale.CheckContact(tibiaObject, maxScanDistance, contactThreshold, condyleRadius);
-        helperLaterale.CheckContact(tibiaObject, maxScanDistance, contactThreshold, condyleRadius);
+        helperMedial.CheckContact(tibiaObject, maxScanDistance, contactThreshold, condyleRadius);
+        helperLateral.CheckContact(tibiaObject, maxScanDistance, contactThreshold, condyleRadius);
     }
 
     void OnDrawGizmos()
     {
-        if (pointMediale != null)
+        if (pointMedial != null)
         {
             Gizmos.color = colorMedial;
-            Gizmos.DrawWireSphere(pointMediale.position, condyleRadius);
+            Gizmos.DrawWireSphere(pointMedial.position, condyleRadius);
         }
 
-        if (pointLaterale != null)
+        if (pointLateral != null)
         {
             Gizmos.color = colorLateral;
-            Gizmos.DrawWireSphere(pointLaterale.position, condyleRadius);
+            Gizmos.DrawWireSphere(pointLateral.position, condyleRadius);
         }
     }
 

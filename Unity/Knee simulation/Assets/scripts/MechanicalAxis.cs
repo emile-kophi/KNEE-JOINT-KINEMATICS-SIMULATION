@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]
-public class AnatomicalAxis : MonoBehaviour
+public class MechanicalAxis : MonoBehaviour
 {
     public Transform Prox;
     public Transform Dist;
